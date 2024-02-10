@@ -40,7 +40,6 @@ export default function RootLayout({
     }}
     >
       <html lang="en">
-      <link rel="icon" href="/favicon.png" sizes="any" />
         <body className={`${inter.variable} ${spaceGrotesk.variable}`}>
           <h1 className="h1-bold">My Name is Majid Ali</h1>
           {children}
