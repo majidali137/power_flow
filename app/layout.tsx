@@ -43,7 +43,6 @@ export default function RootLayout({
           }}
         >
           <ThemeProvider>
-            <h1 className="h1-bold">My Name is Majid Ali</h1>
             {children}
           </ThemeProvider>
         </ClerkProvider>
