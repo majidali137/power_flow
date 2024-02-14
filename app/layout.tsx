@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeProvider";
+// import Head from "next/head";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,6 +34,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      {/* <Head>
+        <link rel="icon" href="favicon.ico" sizes="any" />
+      </Head> */}
       <body className={`${inter.variable} ${spaceGrotesk.variable}`}>
         <ClerkProvider
           appearance={{
@@ -42,9 +46,7 @@ export default function RootLayout({
             },
           }}
         >
-          <ThemeProvider>
-            {children}
-          </ThemeProvider>
+          <ThemeProvider>{children}</ThemeProvider>
         </ClerkProvider>
       </body>
     </html>
