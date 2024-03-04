@@ -3,7 +3,11 @@ export const themes = [
     { value: 'dark', label: 'Dark', icon: '/assets/icons/moon.svg' },
     { value: 'system', label: 'System', icon: '/assets/icons/computer.svg' }
   ];
-  
+  interface SidebarLink {
+    imgURL: string;
+    route: string;
+    label: string; // Assuming label is a string
+  }
 
   export const sidebarLinks: SidebarLink[] = [
     {
