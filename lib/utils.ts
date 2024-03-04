@@ -39,6 +39,6 @@ export const formatNumber = (num: number): string => {
   } else if (num >= 1000) {
     return (num / 1000).toFixed(2) + "K"; // Divides by 1,000 and appends "K"
   } else {
-    return num.toString(); // Returns the number as a string if less than 1,000
+    return num?.toString(); // Returns the number as a string if less than 1,000
   }
 };
