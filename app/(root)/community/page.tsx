@@ -14,7 +14,7 @@ const page = async () => {
 
       <div className="mt-11 flex justify-between gap-5 max-sm:flex-col sm:items-center">
         <LocalSearchbar
-          route="/"
+          route="/community"
           iconPosition="left"
           imgSrc="/assets/icons/search.svg"
           placeholder="search for amazing minds"
@@ -28,7 +28,7 @@ const page = async () => {
 
       <section className="mt-12 flex flex-wrap gap-4 ">
         {result.users.length > 0 ? (
-          result.users.map((user) => <UserCard key={user._id} user={user}/>)
+          result.users.map((user) => <UserCard key={user._id} user={user }/>)
         ) : (
           <div className="paragraph-regular text-dark-200_light-800 mx-auto max-w-4xl text-center">
             <p>No users yet</p>
