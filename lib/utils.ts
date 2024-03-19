@@ -1,8 +1,8 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 export const getTimeStamp = (createdAt: Date): string => {
@@ -32,7 +32,6 @@ export const getTimeStamp = (createdAt: Date): string => {
   return Math.floor(seconds) + " seconds ago";
 };
 
-
 export const formatNumber = (num: number): string => {
   if (num >= 1000000) {
     return (num / 1000000).toFixed(2) + "M"; // Divides by 1,000,000 and appends "M"
@@ -42,3 +41,16 @@ export const formatNumber = (num: number): string => {
     return num?.toString(); // Returns the number as a string if less than 1,000
   }
 };
+
+
+export function getJoinedDate(date: Date): string {
+  const monthNames: string[] = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+  ];
+
+  const month: string = monthNames[date.getMonth()];
+  const year: number = date.getFullYear();
+
+  return `${month} ${year}`;
+}
