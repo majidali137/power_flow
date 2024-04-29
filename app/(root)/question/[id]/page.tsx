@@ -11,8 +11,11 @@ import { auth } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-
-const page = async ({ params }) => {
+/* eslint-disable  @typescript-eslint/no-explicit-any */
+interface Params {
+  id: string; // assuming `id` is the only parameter you expect
+}
+const page = async ({ params }: { params: Params }) => {
   const result = await getQuestionById({ questionId: params.id });
   const { userId: clerkId } = auth();
 
@@ -23,7 +26,6 @@ const page = async ({ params }) => {
   }
 
   return (
-    /* eslint-disable  @typescript-eslint/no-explicit-any */
     <>
       <div className="flex-start w-full flex-col">
         <div className="flex w-full flex-col-reverse justify-between gap-5 sm:flex-row sm:items-center sm:gap-2">
@@ -83,7 +85,9 @@ const page = async ({ params }) => {
           textStyles="small-medium text-dark400_light800"
         />
       </div>
+
       <ParseHTML data={result.content} />
+
       <div className="mt-8 flex flex-wrap gap-2">
         {result.tags.map((tag: any) => (
           <RenderTag
