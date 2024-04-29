@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import RenderTag from "../shared/RenderTag";
 import Metric from "../shared/Metric";
 import { formatNumber, getTimeStamp } from "@/lib/utils";
 
@@ -22,7 +21,7 @@ interface Props {
 }
 
 const AnswerCard = ({
-  clerkId,
+  // clerkId,
   _id,
   question,
   author,

@@ -24,7 +24,7 @@ interface QuestionProps {
 }
 
 const QuestionCard = ({
-  clerkId,
+  // clerkId,
   _id,
   title,
   tags,

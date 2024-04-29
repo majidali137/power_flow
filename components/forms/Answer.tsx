@@ -25,8 +25,8 @@ interface Props {
   authorId: string;
 }
 
-
-const Answer = ({ question, questionId, authorId }: Props) => {
+/* eslint-disable  @typescript-eslint/no-explicit-any */
+const Answer = ({ questionId, authorId }: Props) => {
   const pathname = usePathname();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { mode } = useTheme();
@@ -57,6 +57,7 @@ const Answer = ({ question, questionId, authorId }: Props) => {
       }
 
     } catch (error) {
+      console.error('Failed to create answer:', error)
     } finally {
       setIsSubmitting(false);
     }

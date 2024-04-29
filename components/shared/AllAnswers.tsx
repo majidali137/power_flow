@@ -20,8 +20,8 @@ const AllAnswers = async ({
   questionId,
   userId,
   totalAnswers,
-  page,
-  filter,
+  //page,
+  //filter,
 }: Props) => {
   const result = await getAnswers({
     questionId,
