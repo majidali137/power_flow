@@ -12,10 +12,8 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-interface Params {
-  id: string; // assuming `id` is the only parameter you expect
-}
-const page = async ({ params }: { params: Params }) => {
+
+const page = async ({ params, searchParams }) => {
   const result = await getQuestionById({ questionId: params.id });
   const { userId: clerkId } = auth();
 
@@ -103,6 +101,8 @@ const page = async ({ params }: { params: Params }) => {
         questionId={result._id}
         userId={mongoUser._id}
         totalAnswers={result.answers.length}
+        page={searchParams?.page}
+        filter={searchParams?.filter}
       />
 
       <Answer
