@@ -16,6 +16,7 @@ import { revalidatePath } from "next/cache";
 import Answer from "@/database/answer.model";
 import Interaction from "@/database/interaction.modal";
 import { FilterQuery } from "mongoose";
+import escapeStringRegexp from 'escape-string-regexp';
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 
@@ -34,9 +35,10 @@ export async function getQuestions(params: GetQuestionsParams) {
     const query: FilterQuery<typeof Question> = {};
 
     if (searchQuery) {
+      const escapedSearchQuery = escapeStringRegexp(searchQuery);
       query.$or = [
-        { title: { $regex: new RegExp(searchQuery, "i") } },
-        { content: { $regex: new RegExp(searchQuery, "i") } },
+        { title: { $regex: new RegExp(escapedSearchQuery, "i") } },
+        { content: { $regex: new RegExp(escapedSearchQuery, "i") } },
       ];
     }
 

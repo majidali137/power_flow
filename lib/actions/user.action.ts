@@ -102,7 +102,7 @@ export async function getAllUsers(params: GetAllUsersParams) {
   try {
     connectToDatabase();
 
-    const { searchQuery, filter, page = 1, pageSize = 2 } = params;
+    const { searchQuery, filter, page = 1, pageSize = 10 } = params;
     // Calculate the number of posts to skip based on the page number and page size
     // const skipAmount = (page - 1) * pageSize;
 
@@ -274,13 +274,34 @@ export async function getSavedQestions(params: GetSavedQuestionsParams) {
   }
 }
 
+// export async function getUserinfo(params: GetUserByIdParams) {
+//   try {
+//     connectToDatabase();
+//     const { userId } = params;
+//     const user = await User.findOne({ clerkId: userId });
+//     if (!user) {
+//       throw new Error("User not found");
+//     }
+//     const totalQuestions = await Question.countDocuments({ author: user._id });
+//     const totalAnswers = await Answer.countDocuments({ author: user._id });
+//     return {
+//       user,
+//       totalQuestions,
+//       totalAnswers,
+//     };
+//   } catch (error) {
+//     console.log(error);
+//     throw error;
+//   }
+// }
+
 export async function getUserinfo(params: GetUserByIdParams) {
   try {
     connectToDatabase();
     const { userId } = params;
     const user = await User.findOne({ clerkId: userId });
     if (!user) {
-      throw new Error("User not found");
+      return { error: "User not found" };  // Return an error message instead of throwing
     }
     const totalQuestions = await Question.countDocuments({ author: user._id });
     const totalAnswers = await Answer.countDocuments({ author: user._id });
@@ -294,7 +315,6 @@ export async function getUserinfo(params: GetUserByIdParams) {
     throw error;
   }
 }
-
 export async function getUserQuestions(params: GetUserStatsParams) {
   try {
     connectToDatabase();

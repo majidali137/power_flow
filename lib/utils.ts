@@ -43,27 +43,45 @@ export const formatNumber = (num: number): string => {
   }
 };
 
-export function getJoinedDate(date: Date): string {
+// export function getJoinedDate(date: Date): string {
+//   const monthNames: string[] = [
+//     "January",
+//     "February",
+//     "March",
+//     "April",
+//     "May",
+//     "June",
+//     "July",
+//     "August",
+//     "September",
+//     "October",
+//     "November",
+//     "December",
+//   ];
+
+//   const month: string = monthNames[date.getMonth()];
+//   const year: number = date.getFullYear();
+
+//   return `${month} ${year}`;
+// }
+export function getJoinedDate(date?: Date): string {
+  // Default month names
   const monthNames: string[] = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
   ];
+
+  // Check if date is a valid Date object
+  if (!(date instanceof Date) || isNaN(date.getTime())) {
+    return 'Invalid date'; // Return a default or error message
+  }
 
   const month: string = monthNames[date.getMonth()];
   const year: number = date.getFullYear();
 
   return `${month} ${year}`;
 }
+
 
 interface UrlQueryParams {
   params: string;
