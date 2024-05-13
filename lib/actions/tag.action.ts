@@ -37,38 +37,55 @@ export async function getAllTags(params: GetAllTagsParams) {
   try {
     connectToDatabase();
 
-    const {searchQuery, filter} = params
+    const { searchQuery, filter } = params;
 
-    const query: FilterQuery<typeof Tag> ={}
-    if(searchQuery){
-      query.name = { $regex: searchQuery, $options: "i" }
+    // Calculate the number of posts to skip based on the page number and page size
+    // const skipAmount = (page - 1) * pageSize;
+
+        // Ensure the page and pageSize parameters are valid, non-negative integers
+        const validatedPage = Math.max(1, parseInt(params.page?.toString() || '1', 10));
+        const validatedPageSize = Math.max(4, parseInt(params.pageSize?.toString() || '2', 10));
+    
+        // Calculate the number of posts to skip based on the page number and page size
+        const skipAmount = (validatedPage - 1) * validatedPageSize;
+
+    const query: FilterQuery<typeof Tag> = {};
+    if (searchQuery) {
+      query.name = { $regex: searchQuery, $options: "i" };
     }
     let sortOptions = {};
 
     switch (filter) {
-      case "popular": 
-      sortOptions = {questions: -1}
-        break;
-    
-      case "recent": 
-      sortOptions = {createdAt: -1}
-        break;
-    
-      case "name": 
-      sortOptions = {name: -1}
+      case "popular":
+        sortOptions = { questions: -1 };
         break;
 
-      case "old": 
-      sortOptions = {createdAt: 1}
+      case "recent":
+        sortOptions = { createdAt: -1 };
         break;
-    
+
+      case "name":
+        sortOptions = { name: -1 };
+        break;
+
+      case "old":
+        sortOptions = { createdAt: 1 };
+        break;
+
       default:
         break;
     }
 
+    const totalTags = await Tag.countDocuments(query);
+    const tags = await Tag.find(query)
+      .sort(sortOptions)
+      .skip(skipAmount)
+      .limit(validatedPageSize);
+      // .limit(pageSize);
 
-    const tags = await Tag.find(query).sort(sortOptions)
-    return { tags };
+    const isNext = totalTags > skipAmount + tags.length;
+
+    return { tags, isNext };
   } catch (error) {
     console.log(error);
     throw error;
@@ -79,6 +96,14 @@ export async function getQuestionByTagId(params: GetQuestionsByTagIdParams) {
   try {
     connectToDatabase();
     const { tagId, searchQuery } = params;
+    // Calculate the number of posts to skip based on the page number and page size
+    // const skipAmount = (page - 1) * pageSize;
+    // Ensure that 'page' and 'pageSize' are positive integers
+    const validatedPage = Math.max(1, parseInt(params.page?.toString() || '1', 10));
+    const validatedPageSize = Math.max(1, parseInt(params.pageSize?.toString() || '2', 10));
+
+    // Calculate the number of posts to skip based on the validated page number and page size
+    const skipAmount = (validatedPage - 1) * validatedPageSize;
 
     const tagFilter: FilterQuery<ITag> = { _id: tagId };
     const tag = await Tag.findOne(tagFilter).populate({
@@ -89,6 +114,9 @@ export async function getQuestionByTagId(params: GetQuestionsByTagIdParams) {
         : {},
       options: {
         sort: { createdAt: -1 },
+        skip: skipAmount,
+        limit: validatedPageSize + 1,
+        // limit: pageSize + 1,
       },
       populate: [
         { path: "tags", model: Tag, select: "_id name" },
@@ -98,9 +126,13 @@ export async function getQuestionByTagId(params: GetQuestionsByTagIdParams) {
     if (!tag) {
       throw new Error("Tag not found");
     }
+    // const isNext = tag.questions.length > pageSize;
+    // const questions = tag.questions;
 
-    const questions = tag.questions;
-    return { tagTitle: tag.name, questions };
+    const isNext = tag.questions.length > validatedPageSize;
+    const questions = tag.questions.slice(0, validatedPageSize);
+
+    return { tagTitle: tag.name, questions,  isNext };
   } catch (error) {
     console.log(error);
     throw error;
