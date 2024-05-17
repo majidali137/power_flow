@@ -10,16 +10,16 @@ import {
   GetQuestionByIdParams,
   GetQuestionsParams,
   QuestionVoteParams,
+  RecommendedParams,
 } from "./shared.types";
 import User from "@/database/user.modal";
 import { revalidatePath } from "next/cache";
 import Answer from "@/database/answer.model";
 import Interaction from "@/database/interaction.modal";
 import { FilterQuery } from "mongoose";
-import escapeStringRegexp from 'escape-string-regexp';
+import escapeStringRegexp from "escape-string-regexp";
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
-
 
 export async function getQuestions(params: GetQuestionsParams) {
   try {
@@ -42,18 +42,18 @@ export async function getQuestions(params: GetQuestionsParams) {
       ];
     }
 
-    let sortOptions = {}
+    let sortOptions = {};
 
     switch (filter) {
       case "newest":
-       sortOptions = {createdAt: -1}
+        sortOptions = { createdAt: -1 };
         break;
       case "frequent":
-        sortOptions = {views: -1}
+        sortOptions = { views: -1 };
 
         break;
       case "unanswered":
-        query.answers = {$size: 0}
+        query.answers = { $size: 0 };
         break;
       default:
         break;
@@ -64,11 +64,11 @@ export async function getQuestions(params: GetQuestionsParams) {
       .populate({ path: "author", model: User })
       .skip(skipAmount)
       .limit(pageSize)
-      .sort(sortOptions );
+      .sort(sortOptions);
 
-      const totalQuestions = await Question.countDocuments(query)
+    const totalQuestions = await Question.countDocuments(query);
 
-      const isNext = totalQuestions > skipAmount + questions.length
+    const isNext = totalQuestions > skipAmount + questions.length;
 
     return { questions, isNext };
   } catch (error) {
@@ -106,8 +106,20 @@ export async function createQuestion(params: CreateQuestionParams) {
       $push: { tags: { $each: tagDocuments } },
     });
 
+    // Create an interaction record for the user's ask_question action
+    await Interaction.create({
+      user: author,
+      action: "ask_question",
+      question: question._id,
+      tags: tagDocuments,
+    });
+
+    // Increment author's reputation by +5 for creating a question
+    await User.findByIdAndUpdate(author, { $inc: { reputation: 5 } });
+
     revalidatePath(path);
   } catch (error) {
+    console.log(error);
     // Handle connection error
   }
 }
@@ -157,7 +169,16 @@ export async function upvoteQuestion(params: QuestionVoteParams) {
     if (!question) {
       throw new Error("Question not found");
     }
-    // Increment author's reputation
+    // Increment author's reputation by +1 / -1 for upvoting/ revoking an vpvote to the question
+
+    await User.findByIdAndUpdate(userId, {
+      $inc: { reputation: hasupVoted ? -1 : 1 },
+    });
+
+    // Increment author's reputation by +10/-10 for recieving an upvote/downvote to the question
+    await User.findByIdAndUpdate(question.author, {
+      $inc: { reputation: hasupVoted ? -10 : 10 },
+    });
 
     revalidatePath(path);
   } catch (error) {
@@ -192,6 +213,14 @@ export async function downvoteQuestion(params: QuestionVoteParams) {
       throw new Error("Question not found");
     }
     // Increment author's reputation
+
+    await User.findByIdAndUpdate(userId, {
+      $inc: { reputation: hasupVoted ? -2 : 2 },
+    });
+
+    await User.findByIdAndUpdate(question.author, {
+      $inc: { reputation: hasupVoted ? -10 : 10 },
+    });
 
     revalidatePath(path);
   } catch (error) {
@@ -248,6 +277,77 @@ export async function getHotQuestions() {
     return hotQestions;
   } catch (error) {
     console.log(error);
+    throw error;
+  }
+}
+
+export async function getRecommendedQuestions(params: RecommendedParams) {
+  try {
+    await connectToDatabase();
+
+    const { userId, page = 1, pageSize = 20, searchQuery } = params;
+
+    // Find user
+    const user = await User.findOne({ clerkId: userId });
+
+    if (!user) {
+      throw new Error("user not found");
+    }
+
+    const skipAmount = (page - 1) * pageSize;
+
+    // Find the user's interactions
+    const userInteractions = await Interaction.find({ user: user._id })
+      .populate("tags")
+      .exec();
+
+    // Extract tags from user's interactions
+    const userTags = userInteractions.reduce((tags, interaction) => {
+      if (interaction.tags) {
+        return tags.concat(interaction.tags);
+      }
+      return tags;
+    }, []); // Initialize tags as an empty array
+
+    // Get distinct tag IDs from user's interactions
+    const distinctUserTagIds = Array.from(
+      new Set(userTags.map((tag: any) => tag.id))
+    );
+   
+
+    const query: FilterQuery<typeof Question> = {
+      $and: [
+        { tags: { $in: distinctUserTagIds } }, // Questions with user's tags
+        { author: { $ne: user._id } }, // Exclude user's own questions
+      ],
+    };
+
+    if (searchQuery) {
+      query.$or = [
+        { title: { $regex: searchQuery, $options: "i" } },
+        { content: { $regex: searchQuery, $options: "i" } },
+      ];
+    }
+
+    const totalQuestions = await Question.countDocuments(query);
+
+    const recommendedQuestions = await Question.find(query)
+      .populate({
+        path: "tags",
+        model: Tag,
+      })
+      .populate({
+        path: "author",
+        model: User,
+      })
+      .skip(skipAmount)
+      .limit(pageSize);
+
+    const isNext = totalQuestions > skipAmount + recommendedQuestions.length;
+
+    return { questions: recommendedQuestions, isNext };
+  } catch (error) {
+    console.error("Error getting recommended questions:", error);
     throw error;
   }
 }

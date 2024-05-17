@@ -13,8 +13,10 @@ import QuestionTab from "@/components/shared/QuestionTab";
 import AnswersTab from "@/components/shared/AnswersTab";
 
 const Page = async ({ params, searchParams }: URLProps) => {
-  const { userId: clerkId } = auth();
+  // const { userId: clerkId } = auth();
+  const clerkId = auth()?.userId ?? undefined; // Convert null to undefined
   const userInfo = await getUserinfo({ userId: params.id });
+  userInfo.badgeCounts = userInfo.badgeCounts || { GOLD: 0, SILVER: 0, BRONZE: 0 };
   return (
     <>
       <div className="flex flex-col-reverse items-start justify-between sm:flex-row">
@@ -73,9 +75,17 @@ const Page = async ({ params, searchParams }: URLProps) => {
           </SignedIn>
         </div>
       </div>
-      <Stats
+      {/* <Stats
+      reputation={userInfo.reputation}
         totalQuestions={userInfo.totalQuestions}
         totalAnswers={userInfo.totalAnswers}
+        badges = {userInfo.badgeCounts}
+      /> */}
+      <Stats
+        reputation={userInfo.reputation}
+        totalQuestions={userInfo.totalQuestions || 0} // Provide a default value if totalQuestions is undefined
+        totalAnswers={userInfo.totalAnswers || 0}
+        badges={userInfo.badgeCounts}
       />
       <div className="mt-10 flex gap-10">
         <Tabs defaultValue="top-posts" className="flex-1">
@@ -87,7 +97,10 @@ const Page = async ({ params, searchParams }: URLProps) => {
               Answers
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="top-posts">
+          <TabsContent
+            value="top-posts"
+            className="mt-5 flex w-full flex-col gap-6"
+          >
             {" "}
             {/* <QuestionTab
               searchParams={searchParams}

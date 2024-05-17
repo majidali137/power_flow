@@ -6,16 +6,42 @@ import Pagination from "@/components/shared/Pagination";
 import LocalSearchbar from "@/components/shared/search/LocalSearchbar";
 import { Button } from "@/components/ui/button";
 import { HomePageFilters } from "@/constants/filters";
-import { getQuestions } from "@/lib/actions/question.action";
+import { getQuestions, getRecommendedQuestions } from "@/lib/actions/question.action";
 import { SearchParamsProps } from "@/types";
+import { auth } from "@clerk/nextjs";
+import { Metadata } from "next";
 import Link from "next/link";
 
+export const metadata: Metadata = {
+  title: "Home | PowerFlow",
+  description: "Power Flow is a community of 1,000,000+ developers. Join us.",
+};
+
 export default async function Home({ searchParams }: SearchParamsProps) {
-  const result = await getQuestions({
-    searchQuery: searchParams.q,
-    filter: searchParams.filter,
-    page: searchParams.page ? +searchParams.page : 1,
+  const { userId } = auth();
+
+let result;
+if(searchParams?.filter === 'recommended') {
+  if(userId) {
+      result = await getRecommendedQuestions({
+          userId,
+          searchQuery: searchParams.q,
+          page: searchParams.page ? +searchParams.page : 1,
+      });
+  } else {
+      result = {
+          questions: [],
+          isNext: false,
+      };
+  }
+} else {
+  result = await getQuestions({
+      searchQuery: searchParams.q,
+      filter: searchParams.filter,
+      page: searchParams.page ? +searchParams.page : 1,
   });
+}
+
 
   return (
     <>
@@ -72,9 +98,9 @@ export default async function Home({ searchParams }: SearchParamsProps) {
         )}
       </div>
       <div className="mt-10">
-        <Pagination 
-        pageNumber={searchParams?.page ? +searchParams.page:1}
-        isNext = {result.isNext}
+        <Pagination
+          pageNumber={searchParams?.page ? +searchParams.page : 1}
+          isNext={result.isNext}
         />
       </div>
     </>

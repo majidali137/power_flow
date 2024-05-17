@@ -76,14 +76,14 @@ const Profile =  ({ clerkId, user }: Props) => {
           name="name"
           render={({ field }) => (
             <FormItem className="space-x-3.5">
-              <FormLabel>
+              <FormLabel className="paragraph-semibold text-dark400_light800">
                 Name <span className="text-primary-500">*</span>
               </FormLabel>
               <FormControl>
                 <Input
                   placeholder="Your Name"
                   {...field}
-                  className="focus-visible:ring-0 focus-visible:ring-transparent focus paragraph-regular light-border-2 background-light700_dark300 text-dark300_light700 min-h-[56px]"
+                  className="focus-visible:ring-0 focus-visible:ring-transparent focus paragraph-regular light-border-2 background-light800_dark300 text-dark300_light700 min-h-[56px]"
                 />
               </FormControl>
 
@@ -96,14 +96,14 @@ const Profile =  ({ clerkId, user }: Props) => {
           name="username"
           render={({ field }) => (
             <FormItem className="space-x-3.5">
-              <FormLabel>
+              <FormLabel className="paragraph-semibold text-dark400_light800">
                 username <span className="text-primary-500">*</span>
               </FormLabel>
               <FormControl>
                 <Input
                   placeholder="Your username"
                   {...field}
-                  className="focus-visible:ring-0 focus-visible:ring-transparent focus paragraph-regular light-border-2 background-light700_dark300 text-dark300_light700 min-h-[56px]"
+                  className="focus-visible:ring-0 focus-visible:ring-transparent focus paragraph-regular light-border-2 background-light800_dark300 text-dark300_light700 min-h-[56px]"
                 />
               </FormControl>
 
@@ -116,13 +116,13 @@ const Profile =  ({ clerkId, user }: Props) => {
           name="portfolioWebsite"
           render={({ field }) => (
             <FormItem className="space-x-3.5">
-              <FormLabel>Protfolio Link</FormLabel>
+              <FormLabel className="paragraph-semibold text-dark400_light800">Protfolio Link</FormLabel>
               <FormControl>
                 <Input
                   type="url"
                   placeholder="Your portfolio URL"
                   {...field}
-                  className="focus-visible:ring-0 focus-visible:ring-transparent focus paragraph-regular light-border-2 background-light700_dark300 text-dark300_light700 min-h-[56px]"
+                  className="focus-visible:ring-0 focus-visible:ring-transparent focus paragraph-regular light-border-2 background-light800_dark300 text-dark300_light700 min-h-[56px]"
                 />
               </FormControl>
 
@@ -135,12 +135,12 @@ const Profile =  ({ clerkId, user }: Props) => {
           name="location"
           render={({ field }) => (
             <FormItem className="space-x-3.5">
-              <FormLabel>Location</FormLabel>
+              <FormLabel className="paragraph-semibold text-dark400_light800">Location</FormLabel>
               <FormControl>
                 <Input
                   placeholder="Where are you from?"
                   {...field}
-                  className="focus-visible:ring-0 focus-visible:ring-transparent focus paragraph-regular light-border-2 background-light700_dark300 text-dark300_light700 min-h-[56px]"
+                  className="focus-visible:ring-0 focus-visible:ring-transparent focus paragraph-regular light-border-2 background-light800_dark300 text-dark300_light700 min-h-[56px]"
                 />
               </FormControl>
 
@@ -153,14 +153,14 @@ const Profile =  ({ clerkId, user }: Props) => {
           name="bio"
           render={({ field }) => (
             <FormItem className="space-x-3.5">
-              <FormLabel>
+              <FormLabel className="paragraph-semibold text-dark400_light800">
                 Bio <span className="text-primary-500">*</span>
               </FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="What's Special about you?"
                   {...field}
-                  className="focus-visible:ring-0 focus-visible:ring-transparent focus paragraph-regular light-border-2 background-light700_dark300 text-dark300_light700 min-h-[56px]"
+                  className="focus-visible:ring-0 focus-visible:ring-transparent focus paragraph-regular light-border-2 background-light800_dark300 text-dark300_light700 min-h-[56px]"
                 />
               </FormControl>
 

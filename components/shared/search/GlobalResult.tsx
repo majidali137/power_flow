@@ -75,6 +75,7 @@ const GlobalResult = () => {
         ) : (
           <div className="flex flex-col gap-2">
             {result.length > 0 ? (
+              // eslint-disable-next-line
               result.map((item: any, index: number) => (
                 <Link
                   href={renderLink(item.type, item.id)}

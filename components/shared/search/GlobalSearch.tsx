@@ -17,6 +17,7 @@ const GlobalSearch = () => {
   const searchContainerRef = useRef(null)
 
   useEffect(() => {
+    // eslint-disable-next-line
     const handleOutsideClick = (event: any) => {
       if(searchContainerRef.current &&
         // @ts-expect-error: Ref is untyped and may not contain 'contains' method
@@ -79,7 +80,7 @@ const GlobalSearch = () => {
             if(e.target.value === "" && isOpen)
               setIsOpen(false)
         }}
-          className="paragraph-regular text-dark400_light700 focus-visible:ring-0 focus-visible:ring-transparent focus background-light800_darkgradient border-none shadow-none outline-none"
+          className="paragraph-regular text-dark400_light700 focus-visible:ring-0 focus-visible:ring-transparent focus border-none bg-transparent shadow-none outline-none"
         />
       </div>
       {isOpen && <GlobalResult />}

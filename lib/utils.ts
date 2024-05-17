@@ -1,6 +1,9 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import qs from "query-string";
+import { BADGE_CRITERIA } from "@/constants";
+
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -67,13 +70,23 @@ export const formatNumber = (num: number): string => {
 export function getJoinedDate(date?: Date): string {
   // Default month names
   const monthNames: string[] = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   // Check if date is a valid Date object
   if (!(date instanceof Date) || isNaN(date.getTime())) {
-    return 'Invalid date'; // Return a default or error message
+    return "Invalid date"; // Return a default or error message
   }
 
   const month: string = monthNames[date.getMonth()];
@@ -81,7 +94,6 @@ export function getJoinedDate(date?: Date): string {
 
   return `${month} ${year}`;
 }
-
 
 interface UrlQueryParams {
   params: string;
@@ -125,3 +137,45 @@ export const removeKeysFromQuery = ({
     { skipNull: true }
   );
 };
+
+
+
+interface BadgeParam {
+  criteria: Array<{
+    type: keyof typeof BADGE_CRITERIA;
+    count: number;
+  }>;
+}
+
+interface BadgeCounts {
+  GOLD: number;
+  SILVER: number;
+  BRONZE: number;
+}
+
+
+interface BadgeParam {
+  criteria: {
+    type: keyof typeof BADGE_CRITERIA;
+    count: number;
+  }[]
+}
+
+export const assignBadges = (params: BadgeParam) => {
+const badgeCounts: BadgeCounts = {
+  GOLD: 0,
+  SILVER:0,
+  BRONZE: 0 ,
+}
+const { criteria } = params;
+criteria.forEach((item) => {
+  const { type, count } = item;
+  const badgeLevels: any = BADGE_CRITERIA[type];
+  Object.keys(badgeLevels).forEach((level: any) => {
+    if (count >= badgeLevels[level]) {
+      badgeCounts[level as keyof BadgeCounts] += 1;
+      }
+      });
+    })
+    return badgeCounts;
+}

@@ -17,6 +17,8 @@ import Question from "@/database/question.model";
 import Tag from "@/database/tag.modal";
 import { FilterQuery } from "mongoose";
 import Answer from "@/database/answer.model";
+import { BadgeCriteriaType } from "@/types";
+import { assignBadges } from "../utils";
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 export async function getUserById(params: any) {
@@ -106,12 +108,12 @@ export async function getAllUsers(params: GetAllUsersParams) {
     // Calculate the number of posts to skip based on the page number and page size
     // const skipAmount = (page - 1) * pageSize;
 
-        // Validate page and pageSize to ensure they are positive integers
-        const validatedPage = Math.max(1, page);
-        const validatedPageSize = Math.max(1, pageSize);
-    
-        // Calculate the number of posts to skip based on the page number and page size
-        const skipAmount = (validatedPage - 1) * validatedPageSize;
+    // Validate page and pageSize to ensure they are positive integers
+    const validatedPage = Math.max(1, page);
+    const validatedPageSize = Math.max(1, pageSize);
+
+    // Calculate the number of posts to skip based on the page number and page size
+    const skipAmount = (validatedPage - 1) * validatedPageSize;
 
     const query: FilterQuery<typeof User> = {};
 
@@ -145,7 +147,7 @@ export async function getAllUsers(params: GetAllUsersParams) {
       .sort(sortOptions)
       .skip(skipAmount)
       .limit(validatedPageSize);
-      // .limit(PageSize)
+    // .limit(PageSize)
 
     const totalUsers = await User.countDocuments(query);
 
@@ -199,12 +201,12 @@ export async function getSavedQestions(params: GetSavedQuestionsParams) {
 
     const { clerkId, searchQuery, filter, page = 1, pageSize = 10 } = params;
 
-       // Ensure page and pageSize are valid
-       const validatedPage = Math.max(1, page);
-       const validatedPageSize = Math.max(1, pageSize);
-   
-       // Calculate the number of posts to skip based on the page number and page size
-       const skipAmount = (validatedPage - 1) * validatedPageSize;
+    // Ensure page and pageSize are valid
+    const validatedPage = Math.max(1, page);
+    const validatedPageSize = Math.max(1, pageSize);
+
+    // Calculate the number of posts to skip based on the page number and page size
+    const skipAmount = (validatedPage - 1) * validatedPageSize;
 
     // Calculate the number of posts to skip based on the page number and page size
     // const skipAmount = (page - 1) * pageSize;
@@ -240,27 +242,26 @@ export async function getSavedQestions(params: GetSavedQuestionsParams) {
         break;
     }
 
-    const user = await User.findOne({ clerkId })
-      .populate({
-        path: "saved",
-        match: query,
-        options: {
-          sort: sortOptions,
-          skip: skipAmount,
-          // limit: pageSize + 1,
-          limit: validatedPageSize + 1,
-        },
-        populate: [
-          { path: "tags", model: Tag, select: "_id name" },
-          { path: "author", model: User, select: "_id clerkId name picture" },
-        ],
-      })
-      // .skip(skipAmount)
-      // .limit(pageSize);
+    const user = await User.findOne({ clerkId }).populate({
+      path: "saved",
+      match: query,
+      options: {
+        sort: sortOptions,
+        skip: skipAmount,
+        // limit: pageSize + 1,
+        limit: validatedPageSize + 1,
+      },
+      populate: [
+        { path: "tags", model: Tag, select: "_id name" },
+        { path: "author", model: User, select: "_id clerkId name picture" },
+      ],
+    });
+    // .skip(skipAmount)
+    // .limit(pageSize);
 
-      // const isNext = user.saved.length > pageSize
-      const isNext = user.saved.length > validatedPageSize;
-      const savedQuestions = user.saved.slice(0, validatedPageSize);
+    // const isNext = user.saved.length > pageSize
+    const isNext = user.saved.length > validatedPageSize;
+    const savedQuestions = user.saved.slice(0, validatedPageSize);
 
     if (!user) {
       throw new Error("User not found");
@@ -301,14 +302,68 @@ export async function getUserinfo(params: GetUserByIdParams) {
     const { userId } = params;
     const user = await User.findOne({ clerkId: userId });
     if (!user) {
-      return { error: "User not found" };  // Return an error message instead of throwing
+      return { error: "User not found" }; // Return an error message instead of throwing
     }
     const totalQuestions = await Question.countDocuments({ author: user._id });
     const totalAnswers = await Answer.countDocuments({ author: user._id });
+
+    const [questionUpvotes] = await Question.aggregate([
+      { $match: { author: user._id } },
+      {
+        $project: {
+          _id: 0,
+          upvotes: { $size: "$upvotes" },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalUpvotes: { $sum: "$upvotes" },
+        },
+      },
+    ]);
+    const [answerUpvotes] = await Answer.aggregate([
+      { $match: { author: user._id } },
+      {
+        $project: {
+          _id: 0,
+          upvotes: { $size: "$upvotes" },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalUpvotes: { $sum: "$upvotes" },
+        },
+      },
+    ]);
+    const [questionViews] = await Answer.aggregate([
+      { $match: { author: user._id } },
+      {
+        $group: {
+          _id: null,
+          totalViews: { $sum: "$views" },
+        },
+      },
+    ]);
+
+    const criteria = [
+      { type: "QUESTION_COUNT" as BadgeCriteriaType, count: totalQuestions },
+      { type: "ANSWER_COUNT" as BadgeCriteriaType, count: totalAnswers },
+      { type: "QUESTION_UPVOTES" as BadgeCriteriaType, count: questionUpvotes?.totalUpvotes || 0 },
+      { type: "ANSWER_UPVOTES" as BadgeCriteriaType, count: answerUpvotes?.totalUpvotes || 0 },
+      { type: "TOTAL_VIEWS" as BadgeCriteriaType, count: questionViews?.totalViews || 0 },
+    ];
+
+    const badgeCounts = assignBadges({criteria})
+    
+
     return {
       user,
       totalQuestions,
       totalAnswers,
+      badgeCounts,
+      reputation: user.reputation,
     };
   } catch (error) {
     console.log(error);
@@ -319,13 +374,19 @@ export async function getUserQuestions(params: GetUserStatsParams) {
   try {
     connectToDatabase();
 
-     const { userId, page = 1, pageSize = 10 } = params;
-     // Calculate the number of posts to skip based on the page number and page size
+    const { userId, page = 1, pageSize = 10 } = params;
+    // Calculate the number of posts to skip based on the page number and page size
     // const skipAmount = (page - 1) * pageSize;
 
     // Ensure that 'page' and 'pageSize' are positive integers
-    const validatedPage = Math.max(1, parseInt(params.page?.toString() || '1', 10));
-    const validatedPageSize = Math.max(1, parseInt(params.pageSize?.toString() || '10', 10));
+    const validatedPage = Math.max(
+      1,
+      parseInt(params.page?.toString() || "1", 10)
+    );
+    const validatedPageSize = Math.max(
+      1,
+      parseInt(params.pageSize?.toString() || "10", 10)
+    );
 
     // Calculate the number of posts to skip based on the validated page number and page size
     const skipAmount = (validatedPage - 1) * validatedPageSize;
@@ -333,14 +394,14 @@ export async function getUserQuestions(params: GetUserStatsParams) {
     const totalQuestions = await Question.countDocuments({ author: userId });
 
     const userQuestions = await Question.find({ author: userId })
-      .sort({ views: -1, upvotes: -1 })
+      .sort({ createdAt: -1, views: -1, upvotes: -1 })
       .populate("tags", "_id name")
       .populate("author", "_id clerkId name picture")
       .skip(skipAmount)
       .limit(validatedPageSize);
-      // .limit(pageSize)
+    // .limit(pageSize)
 
-      const isNextQuestions = totalQuestions > skipAmount + userQuestions.length
+    const isNextQuestions = totalQuestions > skipAmount + userQuestions.length;
 
     return { totalQuestions, questions: userQuestions, isNextQuestions };
   } catch (error) {
@@ -357,11 +418,17 @@ export async function getUserAnswers(params: GetUserStatsParams) {
     // Calculate the number of posts to skip based on the page number and page size
     // const skipAmount = (page - 1) * pageSize;
 
-    const validatedPage = Math.max(1, parseInt(params.page?.toString() || '1', 10));
-    const validatedPageSize = Math.max(1, parseInt(params.pageSize?.toString() || '10', 10));
+    const validatedPage = Math.max(
+      1,
+      parseInt(params.page?.toString() || "1", 10)
+    );
+    const validatedPageSize = Math.max(
+      1,
+      parseInt(params.pageSize?.toString() || "10", 10)
+    );
 
     // Calculate the number of posts to skip based on the validated page number and page size
-    const skipAmount = (validatedPage - 1) * validatedPageSize
+    const skipAmount = (validatedPage - 1) * validatedPageSize;
 
     const totalAnswers = await Answer.countDocuments({ author: userId });
 
@@ -373,7 +440,7 @@ export async function getUserAnswers(params: GetUserStatsParams) {
       // .limit(pageSize)
       .limit(validatedPageSize);
 
-      const isNextAnswer = totalAnswers > skipAmount + userAnswers.length
+    const isNextAnswer = totalAnswers > skipAmount + userAnswers.length;
 
     return { totalAnswers, answers: userAnswers, isNextAnswer };
   } catch (error) {

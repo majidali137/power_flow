@@ -19,6 +19,7 @@ import Image from "next/image";
 import { createAnswer } from "@/lib/actions/answer.action";
 import { usePathname } from "next/navigation";
 
+
 interface Props {
   question: string;
   questionId: string;
@@ -48,29 +49,30 @@ const Answer = ({ questionId, authorId }: Props) => {
         path: pathname,
       });
 
-      form.reset()
-      
-      if(editorRef.current){
+      form.reset();
+
+      if (editorRef.current) {
         const editor = editorRef.current as any;
 
-        editor.setContent('')
+        editor.setContent("");
       }
-
     } catch (error) {
-      console.error('Failed to create answer:', error)
+      console.error("Failed to create answer:", error);
     } finally {
       setIsSubmitting(false);
     }
-  };
+
+  }
+
   return (
     <div>
       <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center sm:gap-2">
         <h4 className="paragraph-semibold text-dark400_light800">
-          Write your answer here
+          Write your answer here 
         </h4>
         <Button
           className="btn light-border-2 gap-1.5 rounded-md px-4 py-2.5 text-primary-500 shadow-none dark:text-primary-500"
-          onClick={() => {}}
+          onClick={()=>{}}
         >
           <Image
             src="/assets/icons/stars.svg"
