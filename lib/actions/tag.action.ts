@@ -44,7 +44,7 @@ export async function getAllTags(params: GetAllTagsParams) {
 
         // Ensure the page and pageSize parameters are valid, non-negative integers
         const validatedPage = Math.max(1, parseInt(params.page?.toString() || '1', 10));
-        const validatedPageSize = Math.max(4, parseInt(params.pageSize?.toString() || '2', 10));
+        const validatedPageSize = Math.max(6, parseInt(params.pageSize?.toString() || '2', 10));
     
         // Calculate the number of posts to skip based on the page number and page size
         const skipAmount = (validatedPage - 1) * validatedPageSize;
