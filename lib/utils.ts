@@ -11,7 +11,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export const getTimeStamp = (createdAt: Date): string => {
   const now = new Date();
-  const seconds = Math.floor((now.getTime() - createdAt.getTime()) / 1000);
+  const seconds = Math.floor((now.getTime() - createdAt?.getTime()) / 1000);
   let interval = seconds / 31536000; // Number of seconds in a year
 
   if (interval > 1) {
@@ -35,6 +35,10 @@ export const getTimeStamp = (createdAt: Date): string => {
   }
   return Math.floor(seconds) + " seconds ago";
 };
+
+
+
+
 
 export const formatNumber = (num: number): string => {
   if (num >= 1000000) {

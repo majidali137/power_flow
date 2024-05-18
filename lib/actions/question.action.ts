@@ -21,9 +21,122 @@ import escapeStringRegexp from "escape-string-regexp";
 
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 
+// This function is written 1st
+// export async function getQuestions(params: GetQuestionsParams) {
+//   try {
+//     connectToDatabase();
+
+//     const { searchQuery, filter, page = 1, pageSize = 10 } = params;
+
+//     // Calculate the number of posts to skip based on the page number and page size
+//     const skipAmount = (page - 1) * pageSize;
+
+//     // Build the query object based on the search query
+
+//     const query: FilterQuery<typeof Question> = {};
+
+//     if (searchQuery) {
+//       const escapedSearchQuery = escapeStringRegexp(searchQuery);
+//       query.$or = [
+//         { title: { $regex: new RegExp(escapedSearchQuery, "i") } },
+//         { content: { $regex: new RegExp(escapedSearchQuery, "i") } },
+//       ];
+//     }
+
+//     let sortOptions = {};
+
+//     switch (filter) {
+//       case "newest":
+//         sortOptions = { createdAt: -1 };
+//         break;
+//       case "frequent":
+//         sortOptions = { views: -1 };
+
+//         break;
+//       case "unanswered":
+//         query.answers = { $size: 0 };
+//         break;
+//       default:
+//         break;
+//     }
+
+//     const questions = await Question.find(query)
+//       .populate({ path: "tags", model: Tag })
+//       .populate({ path: "author", model: User })
+//       .skip(skipAmount)
+//       .limit(pageSize)
+//       .sort(sortOptions);
+
+//     const totalQuestions = await Question.countDocuments(query);
+
+//     const isNext = totalQuestions > skipAmount + questions.length;
+
+//     return { questions, isNext };
+//   } catch (error) {
+//     console.log(error);
+//     throw error;
+//   }
+// }
+
+
+// export async function getQuestions(params:GetQuestionsParams) {
+//   try {
+//     await connectToDatabase();
+
+//     const { searchQuery, filter, page = 1, pageSize = 10 } = params;
+
+//     // Calculate the number of posts to skip based on the page number and page size
+//     const skipAmount = (page - 1) * pageSize;
+
+//     // Build the query object based on the search query
+//     const query = {};
+
+//     if (searchQuery) {
+//       const escapedSearchQuery = escapeStringRegexp(searchQuery);
+//       query.$or = [
+//         { title: { $regex: new RegExp(escapedSearchQuery, "i") } },
+//         { content: { $regex: new RegExp(escapedSearchQuery, "i") } },
+//       ];
+//     }
+
+//     let sortOptions = {};
+
+//     switch (filter) {
+//       case 'newest':
+//         sortOptions = { createdAt: -1 };
+//         break;
+//       case 'frequent':
+//         sortOptions = { views: -1 };
+//         break;
+//       case 'unanswered':
+//         query.answers = { $size: 0 };
+//         break;
+//       default:
+//         break;
+//     }
+
+//     const questions = await Question.find(query)
+//       .populate({ path: 'tags', model: Tag })
+//       .populate({ path: 'author', model: User })
+//       .skip(skipAmount)
+//       .limit(pageSize)
+//       .sort(sortOptions);
+
+//     const totalQuestions = await Question.countDocuments(query);
+
+//     const isNext = totalQuestions > skipAmount + questions.length;
+
+//     return { questions, totalQuestions, isNext };
+//   } catch (error) {
+//     console.log(error);
+//     throw error;
+//   }
+// }
+
+
 export async function getQuestions(params: GetQuestionsParams) {
   try {
-    connectToDatabase();
+    await connectToDatabase();
 
     const { searchQuery, filter, page = 1, pageSize = 10 } = params;
 
@@ -31,8 +144,7 @@ export async function getQuestions(params: GetQuestionsParams) {
     const skipAmount = (page - 1) * pageSize;
 
     // Build the query object based on the search query
-
-    const query: FilterQuery<typeof Question> = {};
+    const query: any = {};
 
     if (searchQuery) {
       const escapedSearchQuery = escapeStringRegexp(searchQuery);
@@ -50,7 +162,6 @@ export async function getQuestions(params: GetQuestionsParams) {
         break;
       case "frequent":
         sortOptions = { views: -1 };
-
         break;
       case "unanswered":
         query.answers = { $size: 0 };
@@ -59,6 +170,10 @@ export async function getQuestions(params: GetQuestionsParams) {
         break;
     }
 
+    // Fetch the total count of questions matching the query
+    const totalQuestions = await Question.countDocuments(query);
+
+    // Fetch the current page of questions
     const questions = await Question.find(query)
       .populate({ path: "tags", model: Tag })
       .populate({ path: "author", model: User })
@@ -66,16 +181,23 @@ export async function getQuestions(params: GetQuestionsParams) {
       .limit(pageSize)
       .sort(sortOptions);
 
-    const totalQuestions = await Question.countDocuments(query);
-
-    const isNext = totalQuestions > skipAmount + questions.length;
+    // Determine if there are more pages
+    const isNext = totalQuestions > skipAmount + pageSize;
 
     return { questions, isNext };
-  } catch (error) {
-    console.log(error);
-    throw error;
+  } catch (error: unknown) {
+    console.error(error);
+
+    let errorMessage = "An unknown error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
+    // Return a consistent structure even on error
+    return { questions: [], isNext: false, error: errorMessage };
   }
 }
+
 
 export async function createQuestion(params: CreateQuestionParams) {
   // Future use: params will be used for database query or other operations.
@@ -229,24 +351,46 @@ export async function downvoteQuestion(params: QuestionVoteParams) {
   }
 }
 
-export async function deleteQuestion(params: DeleteQuestionParams) {
+// export async function deleteQuestion(params: DeleteQuestionParams) {
+//   try {
+//     connectToDatabase();
+
+//     const { questionId, path } = params;
+
+//     await Question.deleteOne({ _id: questionId });
+//     await Answer.deleteMany({ qusetion: questionId });
+//     await Interaction.deleteMany({ question: questionId });
+//     await Tag.updateMany(
+//       { questions: questionId },
+//       { $pull: { questions: questionId } }
+//     );
+//     revalidatePath(path);
+//   } catch (error) {
+//     console.log(error);
+//   }
+// }
+
+
+export async function deleteQuestion(params:DeleteQuestionParams) {
   try {
-    connectToDatabase();
+    await connectToDatabase();
 
     const { questionId, path } = params;
 
     await Question.deleteOne({ _id: questionId });
-    await Answer.deleteMany({ qusetion: questionId });
+    await Answer.deleteMany({ question: questionId });
     await Interaction.deleteMany({ question: questionId });
     await Tag.updateMany(
       { questions: questionId },
       { $pull: { questions: questionId } }
     );
-    revalidatePath(path);
+
+    await revalidatePath(path);
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 }
+
 
 export async function editQuestion(params: EditQuestionParams) {
   try {

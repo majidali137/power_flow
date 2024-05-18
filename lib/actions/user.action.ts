@@ -104,7 +104,7 @@ export async function getAllUsers(params: GetAllUsersParams) {
   try {
     connectToDatabase();
 
-    const { searchQuery, filter, page = 1, pageSize = 10 } = params;
+    const { searchQuery, filter, page = 1, pageSize = 4 } = params;
     // Calculate the number of posts to skip based on the page number and page size
     // const skipAmount = (page - 1) * pageSize;
 
@@ -414,7 +414,7 @@ export async function getUserAnswers(params: GetUserStatsParams) {
   try {
     connectToDatabase();
 
-    const { userId, page = 1, pageSize = 10 } = params;
+    const { userId, page = 1, pageSize = 5 } = params;
     // Calculate the number of posts to skip based on the page number and page size
     // const skipAmount = (page - 1) * pageSize;
 
@@ -424,7 +424,7 @@ export async function getUserAnswers(params: GetUserStatsParams) {
     );
     const validatedPageSize = Math.max(
       1,
-      parseInt(params.pageSize?.toString() || "10", 10)
+      parseInt(params.pageSize?.toString() || "10", 5)
     );
 
     // Calculate the number of posts to skip based on the validated page number and page size

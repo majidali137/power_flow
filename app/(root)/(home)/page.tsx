@@ -84,7 +84,7 @@ if(searchParams?.filter === 'recommended') {
               author={question.author}
               upvotes={question.upvotes}
               views={question.views}
-              answers={question.answers}
+              answers={question?.answers}
               createdAt={question.createdAt}
             />
           ))

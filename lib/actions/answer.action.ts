@@ -22,7 +22,6 @@ export async function createAnswer(params: CreateAnswerParams) {
 
     const newAnswer = await Answer.create({ content, author, question });
 
-    console.log(newAnswer);
 
     // Add the answer to the question's answers array
     const questionObject = await Question.findByIdAndUpdate(question, {
@@ -48,11 +47,59 @@ export async function createAnswer(params: CreateAnswerParams) {
 
 // get Answers
 
+// export async function getAnswers(params: GetAnswersParams) {
+//   try {
+//     connectToDatabase();
+
+//     const { questionId, sortBy, page = 1, pageSize = 1 } = params;
+
+//     // Calculate the number of posts to skip based on the page number and page size
+//     const skipAmount = (page - 1) * pageSize;
+
+//     let sortOptions = {};
+
+//     switch (sortBy) {
+//       case "highestUpvotes":
+//         sortOptions = { upvotes: -1 };
+//         break;
+
+//       case "lowestUpvotes":
+//         sortOptions = { upvotes: 1 };
+//         break;
+
+//       case "recent":
+//         sortOptions = { createdAt: -1 };
+//         break;
+
+//       case "old":
+//         sortOptions = { createdAt: 1 };
+//         break;
+
+//       default:
+//         break;
+//     }
+
+//     const answers = await Answer.find({ question: questionId })
+//       .populate("author", "_id clearkId name picture")
+//       .sort(sortOptions)
+//       .skip(skipAmount)
+//       .limit(pageSize);
+
+//     const totalAnswer = await Answer.countDocuments({ question: questionId });
+
+//     const isNextAnswer = totalAnswer > skipAmount + answers.length;
+
+//     return { answers, isNextAnswer };
+//   } catch (error) {
+//     console.log(error);
+//   }
+// }
+
 export async function getAnswers(params: GetAnswersParams) {
   try {
-    connectToDatabase();
+    await connectToDatabase();
 
-    const { questionId, sortBy, page = 1, pageSize = 1 } = params;
+    const { questionId, sortBy, page = 1, pageSize = 5 } = params; // Default pageSize to a more common value like 10
 
     // Calculate the number of posts to skip based on the page number and page size
     const skipAmount = (page - 1) * pageSize;
@@ -63,19 +110,15 @@ export async function getAnswers(params: GetAnswersParams) {
       case "highestUpvotes":
         sortOptions = { upvotes: -1 };
         break;
-
       case "lowestUpvotes":
         sortOptions = { upvotes: 1 };
         break;
-
       case "recent":
         sortOptions = { createdAt: -1 };
         break;
-
       case "old":
         sortOptions = { createdAt: 1 };
         break;
-
       default:
         break;
     }
@@ -86,13 +129,14 @@ export async function getAnswers(params: GetAnswersParams) {
       .skip(skipAmount)
       .limit(pageSize);
 
-    const totalAnswer = await Answer.countDocuments({ question: questionId });
+    const totalAnswers = await Answer.countDocuments({ question: questionId });
 
-    const isNextAnswer = totalAnswer > skipAmount + answers.length;
+    const isNextAnswer = totalAnswers > page * pageSize;
 
     return { answers, isNextAnswer };
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    throw new Error('Failed to get answers');
   }
 }
 
@@ -181,25 +225,80 @@ export async function downvoteAnswer(params: AnswerVoteParams) {
   }
 }
 
-export async function deleteAnswer(params: DeleteAnswerParams) {
+// export async function deleteAnswer(params: DeleteAnswerParams) {
+//   try {
+//     connectToDatabase();
+
+//     const { answerId, path } = params;
+
+//     const answer = await Answer.findById(answerId);
+
+//     if (!answer) {
+//       throw new Error("answer not found");
+//     }
+//     await answer.deleteOne({ _id: answerId });
+//     await Question.deleteMany(
+//       { _id: answer.qusetion },
+//       { $pull: { answer: answerId } }
+//     );
+//     await Interaction.deleteMany({ question: answerId });
+//     revalidatePath(path);
+//   } catch (error) {
+//     console.log(error);
+//   }
+// }
+
+// export async function deleteAnswer(params: DeleteAnswerParams) {
+//   try {
+//     await connectToDatabase();
+
+//     const { answerId, path } = params;
+
+//     const answer = await Answer.findById(answerId);
+
+//     if (!answer) {
+//       throw new Error("Answer not found");
+//     }
+
+//     await answer.deleteOne({ _id: answerId });
+
+//     await Question.updateOne(
+//       { _id: answer.question }, // Correct the field name
+//       { $pull: { answers: answerId } } // Correct the operation to pull from the answers array
+//     );
+
+//     await Interaction.deleteMany({ answer: answerId }); // Ensure this references the correct field
+
+//     await revalidatePath(path); // Ensure this function is imported and defined elsewhere
+//   } catch (error) {
+//     console.log(error);
+//   }
+// }
+
+
+
+export async function deleteAnswer(params:DeleteAnswerParams) {
   try {
-    connectToDatabase();
+    await connectToDatabase();
 
     const { answerId, path } = params;
 
     const answer = await Answer.findById(answerId);
-
     if (!answer) {
-      throw new Error("answer not found");
+      throw new Error("Answer not found");
     }
+
     await answer.deleteOne({ _id: answerId });
-    await Question.deleteMany(
-      { _id: answer.qusetion },
-      { $pull: { answer: answerId } }
+
+    await Question.updateOne(
+      { _id: answer.question },
+      { $pull: { answers: answerId } }
     );
-    await Interaction.deleteMany({ question: answerId });
-    revalidatePath(path);
+
+    await Interaction.deleteMany({ answer: answerId });
+
+    await revalidatePath(path);
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 }
