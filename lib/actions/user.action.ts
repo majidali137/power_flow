@@ -104,7 +104,7 @@ export async function getAllUsers(params: GetAllUsersParams) {
   try {
     connectToDatabase();
 
-    const { searchQuery, filter, page = 1, pageSize = 4 } = params;
+    const { searchQuery, filter, page = 1, pageSize = 6 } = params;
     // Calculate the number of posts to skip based on the page number and page size
     // const skipAmount = (page - 1) * pageSize;
 
